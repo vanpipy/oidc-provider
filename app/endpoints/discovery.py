@@ -1,9 +1,7 @@
 from fastapi import APIRouter
 from app.config import settings
 
-
 router = APIRouter()
-
 
 @router.get("/.well-known/openid-configuration")
 def discovery():

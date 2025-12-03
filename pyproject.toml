@@ -10,17 +10,30 @@ dependencies = [
   "sqlalchemy>=2.0.0",
   "pydantic>=2.0.0",
   "pydantic-settings>=2.0.0",
+  "python-dotenv>=1.0.0",
   "python-jose[cryptography]>=3.3.0",
   "passlib[bcrypt]>=1.7.4",
+  "bcrypt<4.0.0",
   "python-multipart",
   "jinja2>=3.1.0",
 ]
+
+[project.scripts]
+dev = "app.cli:dev"
+init-db = "app.cli:init_db"
+serve = "app.cli:serve"
+drop-db = "app.cli:drop_db"
+reset-db = "app.cli:reset_db"
+create-user = "app.cli:create_user_cmd"
+create-client = "app.cli:create_client_cmd"
+print-jwks = "app.cli:print_jwks"
+test = "app.cli:test"
+print-settings = "app.cli:print_settings"
 
 [project.optional-dependencies]
 dev = [
   "pytest>=7.0.0",
   "httpx>=0.24.0",
-  "python-dotenv>=1.0.0",
 ]
 
 [[tool.uv.index]]
