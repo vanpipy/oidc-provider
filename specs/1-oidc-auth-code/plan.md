@@ -404,6 +404,12 @@
 
 ### 7.2 未来演进方向（后续特性候选）
 
+当前授权码流特性已经在以下方面为未来演进做了铺垫：
+
+- 在 TokenService 中引入 TokenSet 值对象，并通过单元测试验证；
+- 将授权码合法性与 scope 规范化规则下沉为领域服务；
+- 通过 speckit 文档（spec/plan/tasks/data-model/contracts/quickstart）固化当前协议与数据约束。
+
 以下演进点不在本次授权码流特性的 Scope 内，但与 `Design.md` 和宪章强相关，适合作为后续独立特性：
 
 1. 引入真正的领域层实现
