@@ -3,9 +3,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_db
-from app.infrastructure.database.models import User
-from app.infrastructure.auth.jwt import decode_token
-from app.domain.services.claims import userinfo_claims
+from app.application.services.userinfo_service import get_userinfo_from_token, InvalidTokenError
 
 
 router = APIRouter()
@@ -16,9 +14,7 @@ bearer = HTTPBearer(auto_error=False)
 def userinfo(credentials: HTTPAuthorizationCredentials = Depends(bearer), db: Session = Depends(get_db)):
   if credentials is None:
     raise HTTPException(status_code=401, detail="invalid_token")
-  payload = decode_token(credentials.credentials)
-  user_id = payload.get("sub")
-  user = db.query(User).filter(User.id == int(user_id)).first()
-  if not user:
+  try:
+    return get_userinfo_from_token(db, credentials.credentials)
+  except InvalidTokenError:
     raise HTTPException(status_code=401, detail="invalid_token")
-  return userinfo_claims(user)
