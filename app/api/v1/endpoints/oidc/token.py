@@ -17,7 +17,7 @@ router = APIRouter()
 @router.post("/token", response_model=TokenResponse)
 def token(grant_type: str = Form(...), code: str = Form(None), redirect_uri: str = Form(None), client_id: str = Form(...), client_secret: str = Form(...), db: Session = Depends(get_db)):
   try:
-    access, idt, expires_in, scope = issue_tokens_for_authorization_code(
+    token_set = issue_tokens_for_authorization_code(
       db=db,
       grant_type=grant_type,
       code=code,
@@ -31,4 +31,10 @@ def token(grant_type: str = Form(...), code: str = Form(None), redirect_uri: str
     raise HTTPException(status_code=400, detail="unsupported_grant_type")
   except InvalidGrantError:
     raise HTTPException(status_code=400, detail="invalid_grant")
-  return {"access_token": access, "token_type": "Bearer", "expires_in": expires_in, "id_token": idt, "scope": scope}
+  return {
+    "access_token": token_set.access_token,
+    "token_type": "Bearer",
+    "expires_in": token_set.expires_in,
+    "id_token": token_set.id_token,
+    "scope": token_set.scope,
+  }

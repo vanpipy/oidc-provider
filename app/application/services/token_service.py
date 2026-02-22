@@ -1,5 +1,3 @@
-from typing import Tuple
-
 from sqlalchemy.orm import Session
 
 from app.infrastructure.database.models import AuthorizationCode, User
@@ -21,6 +19,14 @@ class InvalidGrantError(Exception):
   pass
 
 
+class TokenSet:
+  def __init__(self, access_token: str, id_token: str, expires_in: int, scope: str):
+    self.access_token = access_token
+    self.id_token = id_token
+    self.expires_in = expires_in
+    self.scope = scope
+
+
 def issue_tokens_for_authorization_code(
   db: Session,
   grant_type: str,
@@ -28,7 +34,7 @@ def issue_tokens_for_authorization_code(
   redirect_uri: str,
   client_id: str,
   client_secret: str,
-) -> Tuple[str, str, int, str]:
+) -> TokenSet:
   client = get_client_by_client_id(db, client_id)
   if not client or not verify_client_secret(client, client_secret):
     raise InvalidClientError()
@@ -42,4 +48,4 @@ def issue_tokens_for_authorization_code(
   idt = create_id_token(sub=str(user.id), claims=id_token_claims(user, client_id), aud=client_id)
   db.delete(auth_code)
   db.commit()
-  return access, idt, 3600, auth_code.scope
+  return TokenSet(access_token=access, id_token=idt, expires_in=3600, scope=auth_code.scope)

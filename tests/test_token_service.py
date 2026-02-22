@@ -45,7 +45,7 @@ def test_issue_tokens_for_authorization_code_success():
   user_id, client_id, code_value = setup_demo_user_client_and_code()
   db = SessionLocal()
   try:
-    access, idt, expires_in, scope = issue_tokens_for_authorization_code(
+    token_set = issue_tokens_for_authorization_code(
       db=db,
       grant_type="authorization_code",
       code=code_value,
@@ -53,14 +53,14 @@ def test_issue_tokens_for_authorization_code_success():
       client_id=client_id,
       client_secret="secret123",
     )
-    assert expires_in == 3600
-    assert scope == "openid"
+    assert token_set.expires_in == 3600
+    assert token_set.scope == "openid"
 
-    access_payload = decode_token(access)
+    access_payload = decode_token(token_set.access_token)
     assert access_payload["sub"] == str(user_id)
     assert access_payload["aud"] == client_id
 
-    id_payload = decode_token(idt)
+    id_payload = decode_token(token_set.id_token)
     assert id_payload["sub"] == str(user_id)
     assert id_payload["aud"] == client_id
 
