@@ -31,6 +31,23 @@ def _setup_demo_user_and_client():
     db.close()
 
 
+def _obtain_authorization_code(client: TestClient, redirect_uri: str, scope: str, state: str):
+  login_response = client.post(
+    "/authorize",
+    data={
+      "username": "demo",
+      "password": "demo1234",
+      "client_id": "demo-client",
+      "redirect_uri": redirect_uri,
+      "scope": scope,
+      "state": state,
+    },
+  )
+  redirect_response = login_response.history[-1] if login_response.history else login_response
+  location = redirect_response.headers["location"]
+  return _extract_code_and_state(location)
+
+
 def test_authorization_code_flow_success():
   _setup_demo_user_and_client()
   client = TestClient(app)
@@ -98,21 +115,7 @@ def test_token_endpoint_invalid_client_secret():
   client = TestClient(app)
 
   redirect_uri = "http://localhost:3000/callback"
-  login_response = client.post(
-    "/authorize",
-    data={
-      "username": "demo",
-      "password": "demo1234",
-      "client_id": "demo-client",
-      "redirect_uri": redirect_uri,
-      "scope": "openid",
-      "state": "",
-    },
-  )
-  redirect_response = login_response.history[-1] if login_response.history else login_response
-  assert redirect_response.status_code == 302
-  location = redirect_response.headers["location"]
-  code, _ = _extract_code_and_state(location)
+  code, _ = _obtain_authorization_code(client, redirect_uri, "openid", "")
   assert code is not None
 
   token_response = client.post(
@@ -127,6 +130,79 @@ def test_token_endpoint_invalid_client_secret():
   )
   assert token_response.status_code == 400
   assert token_response.json()["detail"] == "invalid_client"
+
+
+def test_token_endpoint_invalid_grant_nonexistent_code():
+  _setup_demo_user_and_client()
+  client = TestClient(app)
+
+  redirect_uri = "http://localhost:3000/callback"
+  token_response = client.post(
+    "/token",
+    data={
+      "grant_type": "authorization_code",
+      "code": "nonexistent-code",
+      "redirect_uri": redirect_uri,
+      "client_id": "demo-client",
+      "client_secret": "secret123",
+    },
+  )
+  assert token_response.status_code == 400
+  assert token_response.json()["detail"] == "invalid_grant"
+
+
+def test_token_endpoint_invalid_grant_reused_code():
+  _setup_demo_user_and_client()
+  client = TestClient(app)
+
+  redirect_uri = "http://localhost:3000/callback"
+  code, _ = _obtain_authorization_code(client, redirect_uri, "openid", "")
+  token_response = client.post(
+    "/token",
+    data={
+      "grant_type": "authorization_code",
+      "code": code,
+      "redirect_uri": redirect_uri,
+      "client_id": "demo-client",
+      "client_secret": "secret123",
+    },
+  )
+  assert token_response.status_code == 200
+
+  token_response2 = client.post(
+    "/token",
+    data={
+      "grant_type": "authorization_code",
+      "code": code,
+      "redirect_uri": redirect_uri,
+      "client_id": "demo-client",
+      "client_secret": "secret123",
+    },
+  )
+  assert token_response2.status_code == 400
+  assert token_response2.json()["detail"] == "invalid_grant"
+
+
+def test_token_endpoint_invalid_grant_redirect_uri_mismatch():
+  _setup_demo_user_and_client()
+  client = TestClient(app)
+
+  correct_redirect = "http://localhost:3000/callback"
+  code, _ = _obtain_authorization_code(client, correct_redirect, "openid", "")
+
+  bad_redirect = "http://localhost:3000/other"
+  token_response = client.post(
+    "/token",
+    data={
+      "grant_type": "authorization_code",
+      "code": code,
+      "redirect_uri": bad_redirect,
+      "client_id": "demo-client",
+      "client_secret": "secret123",
+    },
+  )
+  assert token_response.status_code == 400
+  assert token_response.json()["detail"] == "invalid_grant"
 
 
 def test_authorize_invalid_response_type():
