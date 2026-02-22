@@ -1,4 +1,5 @@
 import json
+import os
 import threading
 import time
 from urllib.error import HTTPError
@@ -12,7 +13,8 @@ from app.cli import seed_demo
 from app.main import app
 
 
-BASE_URL = "http://127.0.0.1:8001"
+BASE_URL = os.getenv("E2E_BASE_URL", "http://127.0.0.1:8001")
+E2E_MODE = os.getenv("E2E_MODE", "embedded")
 
 
 def _extract_code_and_state(location: str) -> tuple[str | None, str | None]:
@@ -56,11 +58,17 @@ def _wait_for_server_ready(timeout_seconds: float = 30.0) -> None:
 
 @pytest.fixture(scope="session", autouse=True)
 def prepare_database() -> None:
+  if E2E_MODE == "external":
+    return
   seed_demo()
 
 
 @pytest.fixture(scope="session")
 def live_server() -> None:
+  if E2E_MODE == "external":
+    _wait_for_server_ready()
+    yield
+    return
   thread = threading.Thread(target=_run_server, daemon=True)
   thread.start()
   _wait_for_server_ready()
