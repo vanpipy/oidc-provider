@@ -2,10 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
-from app.auth import get_db
-from app.models import User
-from app.oidc.core import decode_token
-from app.oidc.claims import userinfo_claims
+from app.api.dependencies import get_db
+from app.infrastructure.database.models import User
+from app.infrastructure.auth.jwt import decode_token
+from app.domain.services.claims import userinfo_claims
 
 
 router = APIRouter()

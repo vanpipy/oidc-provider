@@ -2,12 +2,12 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, Form, HTTPException
 from sqlalchemy.orm import Session
 
-from app.auth import get_db
-from app.models import AuthorizationCode, User
-from app.services.client_service import get_client_by_client_id, verify_client_secret
-from app.oidc.core import create_access_token, create_id_token
-from app.oidc.claims import id_token_claims
-from app.schemas import TokenResponse
+from app.api.dependencies import get_db
+from app.infrastructure.database.models import AuthorizationCode, User
+from app.application.services.client_service import get_client_by_client_id, verify_client_secret
+from app.infrastructure.auth.jwt import create_access_token, create_id_token
+from app.domain.services.claims import id_token_claims
+from app.api.v1.schemas.oidc import TokenResponse
 
 
 router = APIRouter()

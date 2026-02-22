@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from app.models import User
-from app.auth import hash_password, verify_password
+from app.infrastructure.database.models import User
+from app.infrastructure.auth.password import hash_password, verify_password
 
 
 def get_user_by_username(db: Session, username: str) -> User | None:

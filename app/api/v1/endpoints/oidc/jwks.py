@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.oidc.core import jwks
+from app.infrastructure.auth.jwt import jwks
 
 
 router = APIRouter()

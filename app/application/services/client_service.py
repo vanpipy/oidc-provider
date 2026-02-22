@@ -1,8 +1,8 @@
 from typing import List
 from sqlalchemy.orm import Session
-from app.database import SessionLocal
-from app.models import Client
-from app.auth import verify_password, hash_password
+from app.infrastructure.database.session import SessionLocal
+from app.infrastructure.database.models import Client
+from app.infrastructure.auth.password import verify_password, hash_password
 
 
 def get_client_by_client_id(client_id: str) -> Client | None:

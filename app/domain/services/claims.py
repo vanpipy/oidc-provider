@@ -2,7 +2,7 @@ from typing import Dict, Any
 from datetime import datetime, timezone
 
 from app.config import settings
-from app.models import User
+from app.infrastructure.database.models import User
 
 
 def id_token_claims(user: User, client_id: str) -> Dict[str, Any]:
