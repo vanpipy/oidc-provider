@@ -9,6 +9,7 @@ from app.api.dependencies import get_db
 from app.infrastructure.auth.password import verify_password
 from app.application.services.user_service import get_user_by_username
 from app.application.services.client_service import validate_client_redirect_uri, get_client_by_client_id
+from app.application.services.authorization_service import create_authorization_code
 from app.infrastructure.database.models import AuthorizationCode
 
 
@@ -29,19 +30,14 @@ def authorize_login(request: Request, username: str = Form(...), password: str =
   user = get_user_by_username(db, username)
   if not user or not verify_password(password, user.hashed_password):
     raise HTTPException(status_code=400, detail="access_denied")
-  code_value = uuid.uuid4().hex
-  code = AuthorizationCode(
-    code=code_value,
+  code = create_authorization_code(
+    db=db,
     client_id=client_id,
     user_id=user.id,
     redirect_uri=redirect_uri,
     scope=scope,
-    expires_at=datetime.utcnow() + timedelta(minutes=5),
   )
-  db.add(code)
-  db.commit()
-  db.refresh(code)
-  url = f"{redirect_uri}?code={code_value}"
+  url = f"{redirect_uri}?code={code.code}"
   if state:
     url = f"{url}&state={state}"
   return RedirectResponse(url, status_code=302)
