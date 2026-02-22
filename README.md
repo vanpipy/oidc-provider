@@ -46,3 +46,17 @@
 - `specs/1-oidc-auth-code/spec.md`
 - `specs/1-oidc-auth-code/quickstart.md`
 
+## 测试与验证
+
+下表汇总了当前可用的测试命令及其适用场景。所有 CLI 命令既可以通过
+`python -m app.cli <function_name>` 方式调用，也可以在通过 `pip install -e .[dev]`
+后使用在 `pyproject.toml` 中注册的脚本入口（例如 `test-unit`、`test-e2e-embedded` 等）。
+
+| 场景 | 命令 | 描述 | 依赖/前提 |
+|------|------|------|-----------|
+| 全量测试（单元 + 内嵌 e2e） | `python -m app.cli test` 或 `test` | 运行整个 pytest 测试套件（`tests/` + `e2e/`），适合作为本地回归检查。 | 已安装依赖：`pip install -e .[dev]` |
+| 仅单元/服务层测试 | `python -m app.cli test_unit` 或 `test-unit` | 只运行 `tests/` 目录下的用例，快速验证领域服务、应用服务等逻辑，不启动 HTTP 服务器。 | 已安装依赖 |
+| 内嵌服务器 e2e 黑盒测试 | `python -m app.cli test_e2e_embedded` 或 `test-e2e-embedded` | 在当前进程内启动 uvicorn 服务器并运行 `e2e/` 目录下的端到端用例，使用本地 SQLite 与 `seed_demo` 初始化的数据。 | 已安装依赖；本地可绑定端口 `8001`（测试默认使用 `E2E_BASE_URL=http://127.0.0.1:8001`） |
+| 外部服务器 e2e 黑盒测试（手动起服务） | `python -m app.cli test_e2e_external` 或 `test-e2e-external` | 假设 OIDC Provider 已经在外部运行，仅作为“纯客户端”针对 `E2E_BASE_URL` 运行 `e2e/` 用例，用于黑盒验证已有服务。 | 需要预先启动服务并设置 `E2E_BASE_URL`（默认 `http://127.0.0.1:8001`） |
+| Docker 容器化 e2e 测试（一键） | `python scripts/docker_e2e_test.py` | 基于已构建的 Docker 镜像自动 `docker run` 启动容器、等待服务就绪，然后以外部模式运行 `e2e/` 黑盒测试，最后自动停止容器。默认将宿主 `8001` 端口映射到容器 `8000`。 | 需要本地 Docker 环境；需先执行 `docker build -t oidc-provider .` |
+

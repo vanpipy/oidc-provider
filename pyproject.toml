@@ -28,6 +28,9 @@ create-user = "app.cli:create_user_cmd"
 create-client = "app.cli:create_client_cmd"
 print-jwks = "app.cli:print_jwks"
 test = "app.cli:test"
+test-unit = "app.cli:test_unit"
+test-e2e-embedded = "app.cli:test_e2e_embedded"
+test-e2e-external = "app.cli:test_e2e_external"
 print-settings = "app.cli:print_settings"
 
 [project.optional-dependencies]

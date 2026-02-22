@@ -99,6 +99,23 @@ def test():
   raise SystemExit(pytest.main(["-q"]))
 
 
+def test_unit():
+  import pytest
+  raise SystemExit(pytest.main(["-q", "tests"]))
+
+
+def test_e2e_embedded():
+  import pytest
+  os.environ.setdefault("E2E_MODE", "embedded")
+  raise SystemExit(pytest.main(["-q", "e2e"]))
+
+
+def test_e2e_external():
+  import pytest
+  os.environ["E2E_MODE"] = "external"
+  raise SystemExit(pytest.main(["-q", "e2e"]))
+
+
 def print_settings():
   print(json.dumps({
     "PROJECT_NAME": settings.PROJECT_NAME,
