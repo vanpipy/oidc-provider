@@ -1,5 +1,3 @@
-from datetime import datetime, timedelta
-import uuid
 from fastapi import APIRouter, Depends, HTTPException, Request, Form
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -10,7 +8,6 @@ from app.infrastructure.auth.password import verify_password
 from app.application.services.user_service import get_user_by_username
 from app.application.services.client_service import validate_client_redirect_uri, get_client_by_client_id
 from app.application.services.authorization_service import create_authorization_code
-from app.infrastructure.database.models import AuthorizationCode
 
 
 templates = Jinja2Templates(directory="app/api/web/templates")
@@ -18,7 +15,9 @@ router = APIRouter()
 
 
 @router.get("/authorize")
-def authorize(request: Request, response_type: str, client_id: str, redirect_uri: str, scope: str = "", state: str | None = None, db: Session = Depends(get_db)):
+def authorize(request: Request, response_type: str, client_id: str, redirect_uri: str, scope: str = "openid", state: str | None = None, db: Session = Depends(get_db)):
+  if response_type != "code":
+    raise HTTPException(status_code=400, detail="unsupported_response_type")
   client = get_client_by_client_id(db, client_id)
   if not client or not validate_client_redirect_uri(client, redirect_uri):
     raise HTTPException(status_code=400, detail="invalid_client")
