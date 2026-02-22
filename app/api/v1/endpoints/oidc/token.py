@@ -1,12 +1,13 @@
-from datetime import datetime
 from fastapi import APIRouter, Depends, Form, HTTPException
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_db
-from app.infrastructure.database.models import AuthorizationCode, User
-from app.application.services.client_service import get_client_by_client_id, verify_client_secret
-from app.infrastructure.auth.jwt import create_access_token, create_id_token
-from app.domain.services.claims import id_token_claims
+from app.application.services.token_service import (
+  issue_tokens_for_authorization_code,
+  InvalidClientError,
+  UnsupportedGrantTypeError,
+  InvalidGrantError,
+)
 from app.api.v1.schemas.oidc import TokenResponse
 
 
@@ -15,17 +16,19 @@ router = APIRouter()
 
 @router.post("/token", response_model=TokenResponse)
 def token(grant_type: str = Form(...), code: str = Form(None), redirect_uri: str = Form(None), client_id: str = Form(...), client_secret: str = Form(...), db: Session = Depends(get_db)):
-  client = get_client_by_client_id(db, client_id)
-  if not client or not verify_client_secret(client, client_secret):
+  try:
+    access, idt, expires_in, scope = issue_tokens_for_authorization_code(
+      db=db,
+      grant_type=grant_type,
+      code=code,
+      redirect_uri=redirect_uri,
+      client_id=client_id,
+      client_secret=client_secret,
+    )
+  except InvalidClientError:
     raise HTTPException(status_code=400, detail="invalid_client")
-  if grant_type != "authorization_code":
+  except UnsupportedGrantTypeError:
     raise HTTPException(status_code=400, detail="unsupported_grant_type")
-  auth_code = db.query(AuthorizationCode).filter(AuthorizationCode.code == code).first()
-  if not auth_code or auth_code.client_id != client_id or auth_code.redirect_uri != redirect_uri or auth_code.expires_at < datetime.utcnow():
+  except InvalidGrantError:
     raise HTTPException(status_code=400, detail="invalid_grant")
-  user = db.query(User).filter(User.id == auth_code.user_id).first()
-  access = create_access_token(sub=str(user.id), scope=auth_code.scope, aud=client_id)
-  idt = create_id_token(sub=str(user.id), claims=id_token_claims(user, client_id), aud=client_id)
-  db.delete(auth_code)
-  db.commit()
-  return {"access_token": access, "token_type": "Bearer", "expires_in": 3600, "id_token": idt, "scope": auth_code.scope}
+  return {"access_token": access, "token_type": "Bearer", "expires_in": expires_in, "id_token": idt, "scope": scope}
