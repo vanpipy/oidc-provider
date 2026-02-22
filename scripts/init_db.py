@@ -1,6 +1,6 @@
-from app.database import Base, engine, SessionLocal
-from app.services.user_service import create_user
-from app.services.client_service import create_client
+from app.infrastructure.database.session import Base, engine, SessionLocal
+from app.application.services.user_service import create_user
+from app.application.services.client_service import create_client
 
 
 def main():
@@ -14,4 +14,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+  main()

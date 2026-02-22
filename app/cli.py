@@ -2,11 +2,11 @@ import os
 import json
 import uvicorn
 
-from app.database import Base, engine, SessionLocal
-from app.services.user_service import create_user, get_user_by_username
-from app.services.client_service import create_client, get_client_by_client_id
-from app.models import User, Client
-from app.oidc.core import jwks
+from app.infrastructure.database.session import Base, engine, SessionLocal
+from app.infrastructure.database.models import User, Client
+from app.application.services.user_service import create_user, get_user_by_username
+from app.application.services.client_service import create_client, get_client_by_client_id
+from app.infrastructure.auth.jwt import jwks
 from app.config import settings
 
 
@@ -81,7 +81,7 @@ def create_client_cmd():
   Base.metadata.create_all(bind=engine)
   db = SessionLocal()
   try:
-    if get_client_by_client_id(client_id):
+    if get_client_by_client_id(db, client_id):
       print("client exists")
       return
     create_client(db, client_id, client_secret, redirect_uris, scopes)
