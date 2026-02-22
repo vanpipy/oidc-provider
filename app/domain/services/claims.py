@@ -1,18 +1,18 @@
-from typing import Dict, Any
-from datetime import datetime, timezone
-
-from app.config import settings
-from app.infrastructure.database.models import User
+from typing import Dict, Any, Protocol
 
 
-def id_token_claims(user: User, client_id: str) -> Dict[str, Any]:
+class ClaimsUser(Protocol):
+  id: int
+  username: str
+  email: str | None
+
+
+def id_token_claims(user: ClaimsUser, client_id: str) -> Dict[str, Any]:
   return {
     "name": user.username,
     "email": user.email,
   }
-
-
-def userinfo_claims(user: User) -> Dict[str, Any]:
+def userinfo_claims(user: ClaimsUser) -> Dict[str, Any]:
   return {
     "sub": str(user.id),
     "name": user.username,
