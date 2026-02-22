@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Tuple
 
 from sqlalchemy.orm import Session
@@ -7,6 +6,7 @@ from app.infrastructure.database.models import AuthorizationCode, User
 from app.application.services.client_service import get_client_by_client_id, verify_client_secret
 from app.infrastructure.auth.jwt import create_access_token, create_id_token
 from app.domain.services.claims import id_token_claims
+from app.domain.services.authorization_rules import is_authorization_code_valid_for_token
 
 
 class InvalidClientError(Exception):
@@ -35,7 +35,7 @@ def issue_tokens_for_authorization_code(
   if grant_type != "authorization_code":
     raise UnsupportedGrantTypeError()
   auth_code = db.query(AuthorizationCode).filter(AuthorizationCode.code == code).first()
-  if not auth_code or auth_code.client_id != client_id or auth_code.redirect_uri != redirect_uri or auth_code.expires_at < datetime.utcnow():
+  if not is_authorization_code_valid_for_token(auth_code, client_id, redirect_uri):
     raise InvalidGrantError()
   user = db.query(User).filter(User.id == auth_code.user_id).first()
   access = create_access_token(sub=str(user.id), scope=auth_code.scope, aud=client_id)
@@ -43,4 +43,3 @@ def issue_tokens_for_authorization_code(
   db.delete(auth_code)
   db.commit()
   return access, idt, 3600, auth_code.scope
-
