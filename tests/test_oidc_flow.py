@@ -128,3 +128,74 @@ def test_token_endpoint_invalid_client_secret():
   assert token_response.status_code == 400
   assert token_response.json()["detail"] == "invalid_client"
 
+
+def test_authorize_invalid_response_type():
+  _setup_demo_user_and_client()
+  client = TestClient(app)
+
+  redirect_uri = "http://localhost:3000/callback"
+  resp = client.get(
+    "/authorize",
+    params={
+      "response_type": "token",
+      "client_id": "demo-client",
+      "redirect_uri": redirect_uri,
+      "scope": "openid",
+      "state": "xyz",
+    },
+  )
+  assert resp.status_code == 400
+  assert resp.json()["detail"] == "unsupported_response_type"
+
+
+def test_authorize_invalid_client_or_redirect_uri():
+  _setup_demo_user_and_client()
+  client = TestClient(app)
+
+  resp = client.get(
+    "/authorize",
+    params={
+      "response_type": "code",
+      "client_id": "unknown-client",
+      "redirect_uri": "http://localhost:3000/callback",
+      "scope": "openid",
+      "state": "xyz",
+    },
+  )
+  assert resp.status_code == 400
+  assert resp.json()["detail"] == "invalid_client"
+
+  resp = client.get(
+    "/authorize",
+    params={
+      "response_type": "code",
+      "client_id": "demo-client",
+      "redirect_uri": "http://localhost:3000/other",
+      "scope": "openid",
+      "state": "xyz",
+    },
+  )
+  assert resp.status_code == 400
+  assert resp.json()["detail"] == "invalid_client"
+
+
+def test_userinfo_missing_authorization_header():
+  _setup_demo_user_and_client()
+  client = TestClient(app)
+
+  resp = client.get("/userinfo")
+  assert resp.status_code == 401
+  assert resp.json()["detail"] == "invalid_token"
+
+
+def test_userinfo_invalid_token():
+  _setup_demo_user_and_client()
+  client = TestClient(app)
+
+  resp = client.get(
+    "/userinfo",
+    headers={"Authorization": "Bearer not-a-valid-token"},
+  )
+  assert resp.status_code == 401
+  assert resp.json()["detail"] == "invalid_token"
+
