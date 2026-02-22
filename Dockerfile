@@ -10,9 +10,11 @@ RUN pip install --no-cache-dir --upgrade pip
 COPY pyproject.toml .
 COPY app ./app
 
-RUN pip install --no-cache-dir ".[dev]"
+RUN pip install --no-cache-dir "."
 
 ENV PORT=8000
+ENV SECRET_KEY=change-me
 
-CMD ["serve"]
+EXPOSE 8000
 
+CMD ["sh", "-c", "python -m app.cli seed_demo && serve"]
