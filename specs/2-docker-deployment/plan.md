@@ -2,7 +2,7 @@
 
 - Feature Spec: `specs/2-docker-deployment/spec.md`
 - Checklist: `specs/2-docker-deployment/checklists/requirements.md`
-- 代码仓库根目录: `d:/Project/oidc-provider`
+- 代码仓库根目录: 项目根目录（例如本仓库的根目录）
 
 ---
 
@@ -134,4 +134,3 @@
   - README 中的简要说明，指向更详细的部署文档
 
 这些输出将作为后续迭代（例如引入更复杂的运维能力或部署环境）的基础。 
-

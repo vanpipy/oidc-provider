@@ -39,7 +39,7 @@ def main() -> None:
     "-p",
     port_mapping,
     "-e",
-    "DATABASE_URL=sqlite:///./app.db",
+    "DATABASE_URL=sqlite:////app/app.db",
     "-e",
     f"OIDC_ISSUER_URL={base_url}",
     image,
@@ -49,6 +49,17 @@ def main() -> None:
   try:
     subprocess.check_call(run_args)
     container_started = True
+    subprocess.check_call(
+      [
+        "docker",
+        "exec",
+        container_name,
+        "python",
+        "-m",
+        "app.cli",
+        "seed_demo",
+      ]
+    )
     _wait_for_server_ready(base_url)
     os.environ["E2E_MODE"] = "external"
     os.environ["E2E_BASE_URL"] = base_url
@@ -58,7 +69,16 @@ def main() -> None:
     raise SystemExit(exit_code)
   finally:
     if container_started:
-      subprocess.call(["docker", "stop", container_name])
+      try:
+        subprocess.run(
+          ["docker", "stop", container_name],
+          check=True,
+          stdout=subprocess.PIPE,
+          stderr=subprocess.PIPE,
+          text=True,
+        )
+      except subprocess.CalledProcessError as exc:
+        print(f"failed to stop container {container_name}: {exc}", file=sys.stderr)
 
 
 if __name__ == "__main__":
