@@ -2,11 +2,11 @@ import os
 import json
 import uvicorn
 
-from app.database import Base, engine, SessionLocal
-from app.services.user_service import create_user, get_user_by_username
-from app.services.client_service import create_client, get_client_by_client_id
-from app.models import User, Client
-from app.oidc.core import jwks
+from app.infrastructure.database.session import Base, engine, SessionLocal
+from app.infrastructure.database.models import User, Client
+from app.application.services.user_service import create_user, get_user_by_username
+from app.application.services.client_service import create_client, get_client_by_client_id
+from app.infrastructure.auth.jwt import jwks
 from app.config import settings
 
 

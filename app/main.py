@@ -1,21 +1,20 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.database import engine, SessionLocal, Base
-from app.endpoints.authorization import router as authorization_router
-from app.endpoints.token import router as token_router
-from app.endpoints.userinfo import router as userinfo_router
-from app.endpoints.discovery import router as discovery_router
-from app.endpoints.jwks import router as jwks_router
-from app.services.user_service import create_user
-from app.services.client_service import create_client
-from app.models import User, Client
+from app.infrastructure.database.session import engine, SessionLocal, Base
+from app.infrastructure.database.models import User, Client
+from app.application.services.user_service import create_user
+from app.application.services.client_service import create_client
+from app.api.v1.endpoints.oidc.authorization import router as authorization_router
+from app.api.v1.endpoints.oidc.token import router as token_router
+from app.api.v1.endpoints.oidc.userinfo import router as userinfo_router
+from app.api.v1.endpoints.oidc.discovery import router as discovery_router
+from app.api.v1.endpoints.oidc.jwks import router as jwks_router
 
 
 app = FastAPI(title=settings.PROJECT_NAME)
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+app.mount("/static", StaticFiles(directory="app/api/web/static/static"), name="static")
 
 
 @app.on_event("startup")
