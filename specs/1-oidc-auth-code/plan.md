@@ -343,6 +343,10 @@
 
 - 单元测试
   - 覆盖 AuthorizationService、TokenService、UserInfoService、Claims 服务。
+  - 补充领域规则与值对象：
+    - 授权码校验规则（client/redirect_uri/过期时间）；
+    - scope 规范化规则（默认包含 openid，去重与空格处理）；
+    - TokenSet 值对象在 TokenService 流程中的使用。
 
 ### 5.6 Quickstart 与 README 对齐
 
@@ -434,4 +438,3 @@
 - 新建对应的 feature spec（描述业务需求与范围）；
 - 新建对应的 plan（明确与本次授权码流 plan 的边界与衔接关系）；
 - 在实施前再次对照 `constitution.md` 和 `Design.md`，确保新特性延续当前分层和治理原则。
-

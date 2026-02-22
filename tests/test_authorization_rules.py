@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 from app.infrastructure.database.models import AuthorizationCode
 from app.domain.services.authorization_rules import is_authorization_code_valid_for_token
+from app.domain.services.scope_rules import normalize_scope
 
 
 def _build_auth_code(client_id: str = "demo-client", redirect_uri: str = "http://localhost:3000/callback", expires_delta: int = 60):
@@ -40,3 +41,16 @@ def test_is_authorization_code_valid_for_token_expired():
   auth_code = _build_auth_code(expires_delta=-60)
   assert not is_authorization_code_valid_for_token(auth_code, "demo-client", "http://localhost:3000/callback")
 
+
+def test_normalize_scope_defaults_to_openid_when_empty():
+  assert normalize_scope("") == "openid"
+  assert normalize_scope(None) == "openid"
+
+
+def test_normalize_scope_keeps_existing_and_appends_missing_openid():
+  assert normalize_scope("openid profile") == "openid profile"
+  assert normalize_scope("profile") == "profile openid"
+
+
+def test_normalize_scope_removes_duplicates_and_trims_spaces():
+  assert normalize_scope("openid  openid  profile  ") == "openid profile"

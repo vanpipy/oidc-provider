@@ -46,3 +46,29 @@ def test_create_authorization_code_persists_record_and_sets_expiry():
     assert stored.id == code.id
   finally:
     db.close()
+
+
+def test_create_authorization_code_normalizes_scope_and_ensures_openid():
+  setup_db()
+  db = SessionLocal()
+  try:
+    user = db.query(User).filter(User.username == "demo-auth2").first()
+    if not user:
+      user = create_user(db, "demo-auth2", "demo-auth2@example.com", "demo1234")
+    client = db.query(Client).filter(Client.client_id == "demo-auth-client2").first()
+    if not client:
+      client = create_client(db, "demo-auth-client2", "secret123", ["http://localhost:3000/callback"], ["openid", "profile"])
+
+    code = create_authorization_code(
+      db=db,
+      client_id=client.client_id,
+      user_id=user.id,
+      redirect_uri="http://localhost:3000/callback",
+      scope="profile",
+      expires_in_minutes=5,
+    )
+    parts = code.scope.split()
+    assert "openid" in parts
+    assert "profile" in parts
+  finally:
+    db.close()
