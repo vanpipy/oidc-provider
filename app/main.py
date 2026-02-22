@@ -14,7 +14,7 @@ from app.api.v1.endpoints.oidc.jwks import router as jwks_router
 
 
 app = FastAPI(title=settings.PROJECT_NAME)
-app.mount("/static", StaticFiles(directory="app/api/web/static/static"), name="static")
+app.mount("/static", StaticFiles(directory="app/api/web/static"), name="static")
 
 
 @app.on_event("startup")

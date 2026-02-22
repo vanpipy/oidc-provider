@@ -12,7 +12,7 @@ from app.application.services.client_service import validate_client_redirect_uri
 from app.infrastructure.database.models import AuthorizationCode
 
 
-templates = Jinja2Templates(directory="app/api/web/templates/templates")
+templates = Jinja2Templates(directory="app/api/web/templates")
 router = APIRouter()
 
 
