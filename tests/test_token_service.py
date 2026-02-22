@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 
+import pytest
+
 from app.infrastructure.database.session import Base, engine, SessionLocal
 from app.infrastructure.database.models import User, Client, AuthorizationCode
 from app.application.services.user_service import create_user
@@ -74,7 +76,7 @@ def test_issue_tokens_invalid_client():
   user_id, client_id, code_value = setup_demo_user_client_and_code()
   db = SessionLocal()
   try:
-    try:
+    with pytest.raises(InvalidClientError):
       issue_tokens_for_authorization_code(
         db=db,
         grant_type="authorization_code",
@@ -83,9 +85,6 @@ def test_issue_tokens_invalid_client():
         client_id=client_id,
         client_secret="wrong-secret",
       )
-      assert False
-    except InvalidClientError:
-      pass
   finally:
     db.close()
 
@@ -94,7 +93,7 @@ def test_issue_tokens_unsupported_grant_type():
   user_id, client_id, code_value = setup_demo_user_client_and_code()
   db = SessionLocal()
   try:
-    try:
+    with pytest.raises(UnsupportedGrantTypeError):
       issue_tokens_for_authorization_code(
         db=db,
         grant_type="password",
@@ -103,9 +102,6 @@ def test_issue_tokens_unsupported_grant_type():
         client_id=client_id,
         client_secret="secret123",
       )
-      assert False
-    except UnsupportedGrantTypeError:
-      pass
   finally:
     db.close()
 
@@ -114,7 +110,7 @@ def test_issue_tokens_invalid_grant():
   user_id, client_id, code_value = setup_demo_user_client_and_code()
   db = SessionLocal()
   try:
-    try:
+    with pytest.raises(InvalidGrantError):
       issue_tokens_for_authorization_code(
         db=db,
         grant_type="authorization_code",
@@ -123,8 +119,5 @@ def test_issue_tokens_invalid_grant():
         client_id=client_id,
         client_secret="secret123",
       )
-      assert False
-    except InvalidGrantError:
-      pass
   finally:
     db.close()

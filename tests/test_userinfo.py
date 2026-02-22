@@ -1,3 +1,5 @@
+import pytest
+
 from app.infrastructure.database.session import Base, engine, SessionLocal
 from app.infrastructure.database.models import User
 from app.application.services.user_service import create_user
@@ -38,11 +40,8 @@ def test_get_userinfo_from_token_invalid_token_raises_error():
   setup_demo_user()
   db = SessionLocal()
   try:
-    try:
+    with pytest.raises(InvalidTokenError):
       get_userinfo_from_token(db, "not-a-valid-token")
-      assert False
-    except InvalidTokenError:
-      pass
   finally:
     db.close()
 
@@ -52,11 +51,7 @@ def test_get_userinfo_from_token_unknown_user_raises_error():
   db = SessionLocal()
   try:
     token = create_access_token(sub="999999", scope="openid", aud="userinfo-client")
-    try:
+    with pytest.raises(InvalidTokenError):
       get_userinfo_from_token(db, token)
-      assert False
-    except InvalidTokenError:
-      pass
   finally:
     db.close()
-
