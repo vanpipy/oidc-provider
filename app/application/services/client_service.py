@@ -1,16 +1,11 @@
 from typing import List
 from sqlalchemy.orm import Session
-from app.infrastructure.database.session import SessionLocal
 from app.infrastructure.database.models import Client
 from app.infrastructure.auth.password import verify_password, hash_password
 
 
-def get_client_by_client_id(client_id: str) -> Client | None:
-  db = SessionLocal()
-  try:
-    return db.query(Client).filter(Client.client_id == client_id).first()
-  finally:
-    db.close()
+def get_client_by_client_id(db: Session, client_id: str) -> Client | None:
+  return db.query(Client).filter(Client.client_id == client_id).first()
 
 
 def create_client(db: Session, client_id: str, client_secret: str, redirect_uris: List[str], scopes: List[str]) -> Client:

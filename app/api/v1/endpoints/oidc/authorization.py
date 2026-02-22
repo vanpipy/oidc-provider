@@ -17,8 +17,8 @@ router = APIRouter()
 
 
 @router.get("/authorize")
-def authorize(request: Request, response_type: str, client_id: str, redirect_uri: str, scope: str = "", state: str | None = None):
-  client = get_client_by_client_id(client_id)
+def authorize(request: Request, response_type: str, client_id: str, redirect_uri: str, scope: str = "", state: str | None = None, db: Session = Depends(get_db)):
+  client = get_client_by_client_id(db, client_id)
   if not client or not validate_client_redirect_uri(client, redirect_uri):
     raise HTTPException(status_code=400, detail="invalid_client")
   return templates.TemplateResponse("login.html", {"request": request, "client_id": client_id, "redirect_uri": redirect_uri, "scope": scope, "state": state or ""})

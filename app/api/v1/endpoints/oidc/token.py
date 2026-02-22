@@ -15,7 +15,7 @@ router = APIRouter()
 
 @router.post("/token", response_model=TokenResponse)
 def token(grant_type: str = Form(...), code: str = Form(None), redirect_uri: str = Form(None), client_id: str = Form(...), client_secret: str = Form(...), db: Session = Depends(get_db)):
-  client = get_client_by_client_id(client_id)
+  client = get_client_by_client_id(db, client_id)
   if not client or not verify_client_secret(client, client_secret):
     raise HTTPException(status_code=400, detail="invalid_client")
   if grant_type != "authorization_code":

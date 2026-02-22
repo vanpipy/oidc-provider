@@ -81,7 +81,7 @@ def create_client_cmd():
   Base.metadata.create_all(bind=engine)
   db = SessionLocal()
   try:
-    if get_client_by_client_id(client_id):
+    if get_client_by_client_id(db, client_id):
       print("client exists")
       return
     create_client(db, client_id, client_secret, redirect_uris, scopes)
