@@ -132,6 +132,26 @@ def test_token_endpoint_invalid_client_secret():
   assert token_response.json()["detail"] == "invalid_client"
 
 
+def test_authorize_login_access_denied_wrong_password():
+  _setup_demo_user_and_client()
+  client = TestClient(app)
+
+  redirect_uri = "http://localhost:3000/callback"
+  resp = client.post(
+    "/authorize",
+    data={
+      "username": "demo",
+      "password": "wrong-password",
+      "client_id": "demo-client",
+      "redirect_uri": redirect_uri,
+      "scope": "openid",
+      "state": "xyz",
+    },
+  )
+  assert resp.status_code == 400
+  assert resp.json()["detail"] == "access_denied"
+
+
 def test_token_endpoint_invalid_grant_nonexistent_code():
   _setup_demo_user_and_client()
   client = TestClient(app)
